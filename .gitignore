@@ -4,3 +4,12 @@
 node_modules
 dist
 .cache
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# IDE
+.idea
+.vscode
