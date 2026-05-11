@@ -1,33 +1,56 @@
-<!doctype html>
-<html class="no-js" lang="">
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DreamScope - Login</title>
   <link rel="stylesheet" href="css/style.css">
-  <meta name="description" content="">
-
-  <meta property="og:title" content="">
-  <meta property="og:type" content="">
-  <meta property="og:url" content="">
-  <meta property="og:image" content="">
-  <meta property="og:image:alt" content="">
-
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icon.png">
-
-  <link rel="manifest" href="site.webmanifest">
-  <meta name="theme-color" content="#fafafa">
 </head>
-
 <body>
 
-  <!-- Add your site or application content here -->
-  <p>Hello world! This is HTML5 Boilerplate.</p>
+  <main class="container">
+    <h1>DreamScope</h1>
+
+    <section id="auth-step-1">
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="nickname">Nickname</label>
+          <input
+            type="text"
+            id="nickname"
+            placeholder="Enter nickname"
+            required
+          >
+        </div>
+
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="example@gmail.com"
+            required
+          >
+        </div>
+
+        <button type="submit" id="sendLinkBtn">
+          Send magic link
+        </button>
+      </form>
+
+      <p id="statusMessage"></p>
+    </section>
+
+    <footer>
+      <p>
+        By continuing, you agree to DreamScope's
+        <a href="/api/terms" target="_blank">Terms & Conditions</a>
+        and
+        <a href="#">Privacy Policy</a>.
+      </p>
+    </footer>
+  </main>
+
   <script src="js/app.js"></script>
-
 </body>
-
 </html>
