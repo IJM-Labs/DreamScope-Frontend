@@ -1,2 +1,77 @@
-/* ### pages/
-CSS filer til specifikke sider. */
+.auth-page,
+.settings-page {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  align-content: center;
+  justify-items: center;
+  padding: 96px 24px 48px;
+}
+
+.auth-panel,
+.settings-panel {
+  width: min(560px, 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(248, 245, 237, 0.96);
+  box-shadow: var(--shadow);
+  padding: 44px;
+}
+
+.auth-panel h1,
+.settings-panel h1 {
+  margin: 0 0 28px;
+  text-align: center;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: 1;
+}
+
+.auth-form,
+.settings-form {
+  display: grid;
+  gap: 10px;
+}
+
+.auth-form + .auth-form {
+  margin-top: 20px;
+}
+
+.auth-form label,
+.settings-form label {
+  font-weight: 900;
+}
+
+.auth-form input,
+.settings-form input {
+  height: 48px;
+  padding: 0 14px;
+}
+
+.auth-form .button {
+  width: fit-content;
+  justify-self: center;
+  margin-top: 6px;
+}
+
+.auth-form--token label {
+  margin-top: 8px;
+  font-size: 1.6rem;
+}
+
+.auth-terms {
+  width: min(660px, 100%);
+  margin: 34px 0 0;
+  color: rgba(255, 253, 248, 0.84);
+  font-weight: 800;
+}
+
+.auth-terms .link-button {
+  color: white;
+}
+
+@media (max-width: 560px) {
+  .auth-panel,
+  .settings-panel {
+    padding: 28px 18px;
+  }
+}

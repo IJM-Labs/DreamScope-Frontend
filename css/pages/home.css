@@ -1,2 +1,133 @@
-/* ### pages/
-CSS filer til specifikke sider. */
+.home-page {
+  min-height: 100vh;
+  padding: 108px 24px 48px;
+  color: white;
+}
+
+.home-hero {
+  display: grid;
+  width: min(980px, 100%);
+  min-height: calc(100vh - 156px);
+  margin: 0 auto;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+}
+
+.home-hero__kicker {
+  margin: 0 0 12px;
+  color: rgba(255, 253, 248, 0.72);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.home-hero h1 {
+  margin: 0;
+  font-size: clamp(3.2rem, 10vw, 8rem);
+  line-height: 0.95;
+}
+
+.home-hero__intro {
+  width: min(760px, 100%);
+  margin: 24px auto 0;
+  color: rgba(255, 253, 248, 0.9);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.dream-quotes {
+  position: relative;
+  display: grid;
+  width: min(780px, 100%);
+  min-height: 190px;
+  margin: 42px 0 18px;
+}
+
+.dream-quotes span {
+  position: absolute;
+  max-width: 280px;
+  color: rgba(255, 253, 248, 0.82);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.dream-quotes span:nth-child(1) {
+  top: 14px;
+  left: 0;
+}
+
+.dream-quotes span:nth-child(2) {
+  right: 0;
+  bottom: 20px;
+  transform: rotate(24deg);
+}
+
+.dream-quotes span:nth-child(3) {
+  left: 35%;
+  bottom: 0;
+}
+
+.dream-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  width: min(700px, 100%);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fffdf8;
+  padding: 8px;
+  box-shadow: var(--shadow);
+}
+
+.dream-entry textarea {
+  min-height: 54px;
+  border: 0;
+  box-shadow: none;
+  padding: 12px 14px;
+}
+
+.dream-entry .button {
+  align-self: stretch;
+}
+
+.home-hero .disclaimer {
+  width: min(660px, 100%);
+  margin-top: 22px;
+  color: rgba(255, 253, 248, 0.76);
+}
+
+.home-hero .link-button {
+  color: white;
+}
+
+@media (max-width: 680px) {
+  .home-page {
+    padding-inline: 16px;
+  }
+
+  .home-hero {
+    text-align: left;
+    justify-items: stretch;
+  }
+
+  .home-hero h1 {
+    font-size: 3.6rem;
+  }
+
+  .dream-quotes {
+    min-height: auto;
+    gap: 12px;
+    margin: 28px 0 18px;
+  }
+
+  .dream-quotes span {
+    position: static;
+    max-width: none;
+    transform: none !important;
+  }
+
+  .dream-entry {
+    grid-template-columns: 1fr;
+  }
+}

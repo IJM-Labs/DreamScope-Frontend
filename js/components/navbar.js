@@ -1,4 +1,56 @@
-/*Genbrugelige frontend komponenter.
+import { getCurrentUser, isLoggedIn } from "../services/authService.js";
+import { getInitials } from "../utils/helpers.js";
 
-### navbar.js
-Håndterer navigation og menu. */
+export function renderTopbar({ compact = false } = {}) {
+  const user = getCurrentUser();
+
+  return `
+    <header class="topbar ${compact ? "topbar--compact" : ""}">
+      <a class="brand" href="/" data-link>
+        <span class="brand__mark" aria-hidden="true">DS</span>
+        <span>DreamScope</span>
+      </a>
+      <nav class="topbar__nav" aria-label="Primær navigation">
+        ${isLoggedIn() ? "" : '<a href="/" data-link>Home</a>'}
+        <a href="/dreams" data-link>Dreams</a>
+        ${isLoggedIn() ? '<a href="/settings" data-link>Settings</a>' : '<a href="/login" data-link>Login</a>'}
+        ${isLoggedIn() ? '<button class="nav-logout" type="button" data-logout>Log out</button>' : ""}
+      </nav>
+      <a class="profile-chip" href="${isLoggedIn() ? "/settings" : "/login"}" data-link aria-label="Profil">
+        ${user ? getInitials(user.name) : "?"}
+      </a>
+    </header>
+  `;
+}
+
+export function renderSidebar(dreams = []) {
+  const latestDreams = dreams.slice(0, 5);
+
+  return `
+    <aside class="sidebar" aria-label="Dreams menu">
+      <a class="button button--primary sidebar__new" href="/dreams?new=true" data-link>New chat</a>
+      <label class="search-field">
+        <span class="visually-hidden">Search dreams</span>
+        <input id="dream-search" type="search" placeholder="Search">
+      </label>
+      <section class="sidebar__latest">
+        <h2>History</h2>
+        <div class="latest-list">
+          ${latestDreams.map((dream) => `
+            <div class="latest-row">
+              <button class="latest-item" type="button" data-dream-id="${dream.id}">
+                <span>${dream.title}</span>
+              </button>
+              <button class="latest-delete" type="button" aria-label="Delete dream" data-delete-id="${dream.id}">×</button>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+      <div class="sidebar__footer">
+        <a href="/settings" data-link>Settings</a>
+        <button class="sidebar__logout" type="button" data-logout>Log out</button>
+        <span>© ${new Date().getFullYear()} DreamScope</span>
+      </div>
+    </aside>
+  `;
+}
