@@ -26,6 +26,11 @@
   color: var(--muted);
 }
 
+.modal__error {
+  color: var(--danger);
+  font-weight: 800;
+}
+
 .modal__close {
   position: absolute;
   top: 12px;
@@ -37,4 +42,11 @@
   background: var(--panel-muted);
   color: var(--ink);
   font-size: 1.2rem;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
 }

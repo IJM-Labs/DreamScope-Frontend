@@ -28,28 +28,31 @@ export function renderSidebar(conversations = []) {
 
   return `
     <aside class="sidebar" aria-label="Dreams menu">
-      <a class="button button--primary sidebar__new" href="/dreams?new=true" data-link>New chat</a>
-      <label class="search-field">
-        <span class="visually-hidden">Search dreams</span>
-        <input id="dream-search" type="search" placeholder="Search">
-      </label>
-      <section class="sidebar__latest">
-        <h2>History</h2>
-        <div class="latest-list">
-          ${latestConversations.map((conversation) => `
-            <div class="latest-row">
-              <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
-                <span>${conversation.title}</span>
-              </button>
-              <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
-            </div>
-          `).join("")}
+      <button class="sidebar__toggle" type="button" id="sidebar-toggle" aria-label="Hide history" aria-expanded="true">☰</button>
+      <div class="sidebar__content">
+        <a class="button button--primary sidebar__new" href="/dreams?new=true" data-link>New chat</a>
+        <label class="search-field">
+          <span class="visually-hidden">Search dreams</span>
+          <input id="dream-search" type="search" placeholder="Search">
+        </label>
+        <section class="sidebar__latest">
+          <h2>History</h2>
+          <div class="latest-list">
+            ${latestConversations.map((conversation) => `
+              <div class="latest-row">
+                <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
+                  <span>${conversation.title}</span>
+                </button>
+                <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
+              </div>
+            `).join("")}
+          </div>
+        </section>
+        <div class="sidebar__footer">
+          <a href="/settings" data-link>Settings</a>
+          <button class="sidebar__logout" type="button" data-logout>Log out</button>
+          <span>© ${new Date().getFullYear()} DreamScope</span>
         </div>
-      </section>
-      <div class="sidebar__footer">
-        <a href="/settings" data-link>Settings</a>
-        <button class="sidebar__logout" type="button" data-logout>Log out</button>
-        <span>© ${new Date().getFullYear()} DreamScope</span>
       </div>
     </aside>
   `;

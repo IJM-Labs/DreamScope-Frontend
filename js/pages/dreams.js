@@ -1,6 +1,6 @@
 import { renderSidebar, renderTopbar } from "../components/navbar.js";
 import { openModal } from "../components/modal.js";
-import { createDream, deleteDream, getDreams } from "../services/dreamService.js";
+import { createDream, deleteDream, deleteThread, getDreams } from "../services/dreamService.js";
 import { STORAGE_KEYS } from "../utils/constants.js";
 import { createId, escapeHtml, qs } from "../utils/helpers.js";
 import { required } from "../utils/validator.js";
@@ -18,23 +18,38 @@ function readSavedConversations(dreams) {
   const existingDreamIds = new Set(dreams.map((dream) => dream.id));
   let conversations = saved ? JSON.parse(saved) : [];
 
+  const threadIdByDreamId = new Map(dreams.map((dream) => [dream.id, dream.threadId]));
   conversations = conversations
     .map((conversation) => ({
       ...conversation,
+      id: conversation.threadId || conversation.id,
+      threadId: conversation.threadId || conversation.id,
       dreamIds: (conversation.dreamIds || []).filter((dreamId) => existingDreamIds.has(dreamId))
     }))
     .filter((conversation) => conversation.dreamIds.length);
 
   const assignedDreamIds = new Set(conversations.flatMap((conversation) => conversation.dreamIds));
   const unassignedDreams = dreams.filter((dream) => !assignedDreamIds.has(dream.id));
-  if (unassignedDreams.length) {
+  const unassignedByThread = unassignedDreams.reduce((groups, dream) => {
+    const threadId = dream.threadId || dream.id || createId("thread");
+    groups.set(threadId, [...(groups.get(threadId) || []), dream]);
+    return groups;
+  }, new Map());
+
+  unassignedByThread.forEach((threadDreams, threadId) => {
     conversations.unshift({
-      id: createId("chat"),
-      title: unassignedDreams[0].title || "Dream chat",
-      dreamIds: unassignedDreams.map((dream) => dream.id),
-      updatedAt: unassignedDreams[0].createdAt || new Date().toISOString()
+      id: threadId,
+      threadId,
+      title: threadDreams[0].title || "Dream chat",
+      dreamIds: threadDreams.map((dream) => dream.id),
+      updatedAt: threadDreams[0].createdAt || new Date().toISOString()
     });
-  }
+  });
+
+  conversations = conversations.map((conversation) => ({
+    ...conversation,
+    threadId: conversation.threadId || conversation.id || threadIdByDreamId.get(conversation.dreamIds[0]) || createId("thread")
+  }));
 
   return conversations.sort((first, second) => new Date(second.updatedAt) - new Date(first.updatedAt));
 }
@@ -62,15 +77,17 @@ function setActiveConversation(conversationId) {
 }
 
 function startNewConversation() {
-  setActiveConversation(createId("chat"));
+  setActiveConversation(createId("thread"));
 }
 
 function appendDreamToActiveConversation(dream) {
   let conversation = conversationCache.find((item) => item.id === activeConversationId);
 
   if (!conversation) {
+    const threadId = activeConversationId || dream.threadId || createId("thread");
     conversation = {
-      id: activeConversationId || createId("chat"),
+      id: threadId,
+      threadId,
       title: dream.title || "Dream chat",
       dreamIds: [],
       updatedAt: dream.createdAt || new Date().toISOString()
@@ -125,12 +142,20 @@ export async function renderDreams() {
   dreamCache = await getDreams();
   conversationCache = readSavedConversations(dreamCache);
   activeConversationId = sessionStorage.getItem(STORAGE_KEYS.activeConversation) || conversationCache[0]?.id || "";
+  if (activeConversationId && !conversationCache.some((conversation) => conversation.id === activeConversationId)) {
+    activeConversationId = conversationCache[0]?.id || "";
+    sessionStorage.setItem(STORAGE_KEYS.activeConversation, activeConversationId);
+  }
 
   return `
     ${renderTopbar({ compact: true })}
     <main class="dashboard-layout">
       ${renderSidebar(conversationCache)}
       <section class="dreams-workspace" aria-labelledby="dreams-title">
+        <div class="night-sky" aria-hidden="true">
+          <span class="shooting-star shooting-star--one"></span>
+          <span class="shooting-star shooting-star--two"></span>
+        </div>
         <div class="workspace-heading">
           <p class="workspace-kicker">DreamScope</p>
           <h1 id="dreams-title">What did you dream?</h1>
@@ -153,6 +178,7 @@ export async function renderDreams() {
 }
 
 export function initDreams() {
+  const layout = qs(".dashboard-layout");
   const chat = qs("#dream-chat");
   const sendButton = qs("#dream-send-button");
   const latestList = qs(".latest-list");
@@ -163,6 +189,19 @@ export function initDreams() {
     chat.innerHTML = renderChatMessages(getDreamsForConversation(getActiveConversation()));
     chat.scrollTop = chat.scrollHeight;
   };
+
+  const setSidebarCollapsed = (collapsed) => {
+    layout.classList.toggle("is-sidebar-collapsed", collapsed);
+    sessionStorage.setItem(STORAGE_KEYS.sidebarCollapsed, String(collapsed));
+    const toggle = qs("#sidebar-toggle");
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+    toggle.setAttribute("aria-label", collapsed ? "Show history" : "Hide history");
+  };
+
+  setSidebarCollapsed(sessionStorage.getItem(STORAGE_KEYS.sidebarCollapsed) === "true");
+  qs("#sidebar-toggle").addEventListener("click", () => {
+    setSidebarCollapsed(!layout.classList.contains("is-sidebar-collapsed"));
+  });
 
   qs("#dream-form").addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -177,6 +216,9 @@ export function initDreams() {
     form.reset();
     sendButton.disabled = true;
     sendButton.textContent = "Sending...";
+    if (!activeConversationId) {
+      setActiveConversation(createId("thread"));
+    }
     chat.insertAdjacentHTML("beforeend", `
       <article class="chat-message chat-message--user">
         <span class="chat-message__label">You</span>
@@ -190,7 +232,7 @@ export function initDreams() {
     chat.scrollTop = chat.scrollHeight;
 
     try {
-      const dream = await createDream(value);
+      const dream = await createDream(value, activeConversationId);
       dreamCache = [dream, ...dreamCache];
       appendDreamToActiveConversation(dream);
       refreshChat();
@@ -230,7 +272,11 @@ export function initDreams() {
     if (deleteButton) {
       const conversationId = deleteButton.dataset.deleteConversationId;
       const conversation = conversationCache.find((item) => item.id === conversationId);
-      await Promise.all((conversation?.dreamIds || []).map((dreamId) => deleteDream(dreamId)));
+      if (conversation?.threadId) {
+        await deleteThread(conversation.threadId);
+      } else {
+        await Promise.all((conversation?.dreamIds || []).map((dreamId) => deleteDream(dreamId)));
+      }
       dreamCache = dreamCache.filter((dream) => !conversation?.dreamIds.includes(dream.id));
       conversationCache = conversationCache.filter((item) => item.id !== conversationId);
       saveConversations();

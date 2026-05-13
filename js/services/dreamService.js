@@ -7,6 +7,7 @@ function normalizeDream(dream) {
 
   return {
     id: dream.dreamId || dream.id,
+    threadId: dream.threadId || dream.dreamId || dream.id,
     title: dream.title || text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "New dream chat",
     text,
     createdAt: dream.createdAt || new Date().toISOString(),
@@ -34,9 +35,10 @@ export async function getDreams() {
   }
 }
 
-export async function createDream(text) {
+export async function createDream(text, threadId) {
   const dream = {
     id: createId("dream"),
+    threadId,
     title: text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "New dream chat",
     text: text.trim(),
     createdAt: new Date().toISOString()
@@ -45,7 +47,7 @@ export async function createDream(text) {
   try {
     const response = await request("/api/dreams", {
       method: "POST",
-      body: JSON.stringify({ content: dream.text })
+      body: JSON.stringify({ content: dream.text, threadId })
     });
     return normalizeDream(response);
   } catch (error) {
@@ -62,4 +64,18 @@ export async function deleteDream(id) {
   }
 
   writeLocalDreams(readLocalDreams().filter((dream) => dream.id !== id));
+}
+
+export async function deleteThread(threadId) {
+  if (!threadId) {
+    return;
+  }
+
+  try {
+    await request(`/api/dreams/threads/${encodeURIComponent(threadId)}`, { method: "DELETE" });
+  } catch (error) {
+    console.info("Backend delete thread endpoint is not available yet, deleting locally.", error);
+  }
+
+  writeLocalDreams(readLocalDreams().filter((dream) => dream.threadId !== threadId));
 }

@@ -90,6 +90,33 @@
   color: #ececf1;
 }
 
+.sidebar__toggle {
+  width: 38px;
+  min-height: 38px;
+  border: 1px solid #343434;
+  border-radius: var(--radius);
+  background: #212121;
+  color: #ececf1;
+  font-weight: 900;
+}
+
+.sidebar__content {
+  display: contents;
+}
+
+.dashboard-layout.is-sidebar-collapsed {
+  grid-template-columns: 74px minmax(0, 1fr);
+}
+
+.dashboard-layout.is-sidebar-collapsed .sidebar {
+  align-items: center;
+  padding-inline: 18px;
+}
+
+.dashboard-layout.is-sidebar-collapsed .sidebar__content {
+  display: none;
+}
+
 .sidebar__new {
   width: 100%;
 }

@@ -1,5 +1,6 @@
 import { request } from "./apiService.js";
 import { STORAGE_KEYS } from "../utils/constants.js";
+import { acceptLatestTerms } from "./termsService.js";
 
 function normalizeUser(user) {
   if (!user) {
@@ -53,6 +54,9 @@ export async function verifyMagicLink(token) {
     localStorage.removeItem(STORAGE_KEYS.user);
     localStorage.removeItem(STORAGE_KEYS.token);
     sessionStorage.removeItem("dreamscope:pending-user");
+    if (sessionStorage.getItem(STORAGE_KEYS.termsAccepted) === "true") {
+      await acceptLatestTerms();
+    }
     return user;
   } catch (error) {
     throw new Error(error.message || "The one-time code could not be verified.");

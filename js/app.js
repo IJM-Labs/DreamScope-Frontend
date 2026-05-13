@@ -7,6 +7,7 @@ import { renderLogin, initLogin } from "./pages/login.js";
 import { renderDreams, initDreams } from "./pages/dreams.js";
 import { renderSettings, initSettings } from "./pages/dashboard.js";
 import { STORAGE_KEYS } from "./utils/constants.js";
+import { acceptLatestTerms } from "./services/termsService.js";
 
 const app = qs("#app");
 localStorage.removeItem(STORAGE_KEYS.user);
@@ -92,12 +93,37 @@ function showConsentModal() {
       <p>DreamScope bruger cookies og lokal browser-lagring til login-flow, cookievalg og din midlertidige brugeroplevelse.</p>
       <p>AI-fortolkninger er forslag og kan tage fejl. Dobbelttjek altid vigtig information.</p>
     `,
-    actions: '<button class="button button--primary" type="button" id="accept-consent">Accept</button>'
+    actions: `
+      <button class="button button--secondary" type="button" id="decline-consent">Decline</button>
+      <button class="button button--primary" type="button" id="accept-consent">Accept</button>
+    `,
+    showClose: false,
+    closeOnBackdrop: false
   });
 
-  qs("#accept-consent")?.addEventListener("click", () => {
-    sessionStorage.setItem(STORAGE_KEYS.termsAccepted, "true");
+  qs("#accept-consent")?.addEventListener("click", async () => {
+    const acceptButton = qs("#accept-consent");
+    acceptButton.disabled = true;
+
+    try {
+      if (isLoggedIn()) {
+        await acceptLatestTerms();
+      }
+      sessionStorage.setItem(STORAGE_KEYS.termsAccepted, "true");
+      closeModal();
+    } catch (error) {
+      acceptButton.disabled = false;
+      console.error("DreamScope could not register terms acceptance.", error);
+      qs(".modal__body").insertAdjacentHTML(
+        "beforeend",
+        "<p class=\"modal__error\">DreamScope could not register your acceptance right now. Please try again.</p>"
+      );
+    }
+  });
+
+  qs("#decline-consent")?.addEventListener("click", () => {
     closeModal();
+    window.setTimeout(showConsentModal, 250);
   });
 }
 

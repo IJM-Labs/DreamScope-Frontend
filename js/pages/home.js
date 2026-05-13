@@ -8,6 +8,10 @@ export function renderHome() {
   return `
     ${renderTopbar()}
     <main class="home-page">
+      <div class="night-sky" aria-hidden="true">
+        <span class="shooting-star shooting-star--one"></span>
+        <span class="shooting-star shooting-star--two"></span>
+      </div>
       <section class="home-hero" aria-labelledby="home-title">
         <p class="home-hero__kicker">Dream journal and guide</p>
         <h1 id="home-title">DreamScope <span aria-hidden="true">☾</span></h1>

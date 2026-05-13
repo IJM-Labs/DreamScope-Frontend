@@ -3,33 +3,8 @@
   overflow: hidden;
   min-height: 100vh;
   padding: 108px 24px 48px;
+  background: var(--night-bg);
   color: white;
-}
-
-.home-page::before,
-.home-page::after {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-}
-
-.home-page::before {
-  background-image:
-    radial-gradient(circle, rgba(255, 255, 255, 0.88) 0 1px, transparent 1.8px),
-    radial-gradient(circle, rgba(190, 208, 255, 0.68) 0 1px, transparent 1.6px);
-  background-position: 8% 18%, 64% 32%;
-  background-size: 130px 130px, 190px 190px;
-  opacity: 0.34;
-  animation: starsFade 7s ease-in-out infinite alternate;
-}
-
-.home-page::after {
-  background:
-    radial-gradient(circle at 25% 28%, rgba(255, 255, 255, 0.12), transparent 14%),
-    radial-gradient(circle at 74% 42%, rgba(122, 92, 255, 0.18), transparent 18%);
-  opacity: 0.42;
-  animation: nightPulse 9s ease-in-out infinite alternate;
 }
 
 .home-hero {
@@ -123,28 +98,6 @@
   50% {
     opacity: 1;
     translate: 0 -14px;
-  }
-}
-
-@keyframes starsFade {
-  from {
-    opacity: 0.18;
-    transform: translateY(0);
-  }
-
-  to {
-    opacity: 0.46;
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes nightPulse {
-  from {
-    opacity: 0.24;
-  }
-
-  to {
-    opacity: 0.58;
   }
 }
 

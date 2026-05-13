@@ -12,6 +12,7 @@ export const STORAGE_KEYS = {
   dreams: "dreamscope:dreams",
   conversations: "dreamscope:conversations",
   activeConversation: "dreamscope:active-conversation",
+  sidebarCollapsed: "dreamscope:sidebar-collapsed",
   token: "dreamscope:token",
   termsAccepted: "dreamscope:terms-accepted"
 };
