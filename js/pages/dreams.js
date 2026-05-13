@@ -1,13 +1,92 @@
 import { renderSidebar, renderTopbar } from "../components/navbar.js";
 import { openModal } from "../components/modal.js";
 import { createDream, deleteDream, getDreams } from "../services/dreamService.js";
-import { escapeHtml, qs, qsa } from "../utils/helpers.js";
+import { STORAGE_KEYS } from "../utils/constants.js";
+import { createId, escapeHtml, qs } from "../utils/helpers.js";
 import { required } from "../utils/validator.js";
 
 let dreamCache = [];
+let conversationCache = [];
+let activeConversationId = "";
 
 function getAiText(dream) {
-  return dream.interpretations?.[0]?.text || "DreamScope kunne ikke finde en fortolkning til denne besked endnu.";
+  return dream.interpretations?.[0]?.text || "DreamScope does not have an interpretation for this message yet.";
+}
+
+function readSavedConversations(dreams) {
+  const saved = localStorage.getItem(STORAGE_KEYS.conversations);
+  const existingDreamIds = new Set(dreams.map((dream) => dream.id));
+  let conversations = saved ? JSON.parse(saved) : [];
+
+  conversations = conversations
+    .map((conversation) => ({
+      ...conversation,
+      dreamIds: (conversation.dreamIds || []).filter((dreamId) => existingDreamIds.has(dreamId))
+    }))
+    .filter((conversation) => conversation.dreamIds.length);
+
+  const assignedDreamIds = new Set(conversations.flatMap((conversation) => conversation.dreamIds));
+  const unassignedDreams = dreams.filter((dream) => !assignedDreamIds.has(dream.id));
+  if (unassignedDreams.length) {
+    conversations.unshift({
+      id: createId("chat"),
+      title: unassignedDreams[0].title || "Dream chat",
+      dreamIds: unassignedDreams.map((dream) => dream.id),
+      updatedAt: unassignedDreams[0].createdAt || new Date().toISOString()
+    });
+  }
+
+  return conversations.sort((first, second) => new Date(second.updatedAt) - new Date(first.updatedAt));
+}
+
+function saveConversations() {
+  localStorage.setItem(STORAGE_KEYS.conversations, JSON.stringify(conversationCache));
+}
+
+function getActiveConversation() {
+  return conversationCache.find((conversation) => conversation.id === activeConversationId) || conversationCache[0] || null;
+}
+
+function getDreamsForConversation(conversation) {
+  if (!conversation) {
+    return [];
+  }
+
+  const dreamById = new Map(dreamCache.map((dream) => [dream.id, dream]));
+  return conversation.dreamIds.map((dreamId) => dreamById.get(dreamId)).filter(Boolean);
+}
+
+function setActiveConversation(conversationId) {
+  activeConversationId = conversationId;
+  sessionStorage.setItem(STORAGE_KEYS.activeConversation, conversationId);
+}
+
+function startNewConversation() {
+  setActiveConversation(createId("chat"));
+}
+
+function appendDreamToActiveConversation(dream) {
+  let conversation = conversationCache.find((item) => item.id === activeConversationId);
+
+  if (!conversation) {
+    conversation = {
+      id: activeConversationId || createId("chat"),
+      title: dream.title || "Dream chat",
+      dreamIds: [],
+      updatedAt: dream.createdAt || new Date().toISOString()
+    };
+    conversationCache.unshift(conversation);
+    setActiveConversation(conversation.id);
+  }
+
+  conversation.dreamIds = [dream.id, ...conversation.dreamIds.filter((dreamId) => dreamId !== dream.id)];
+  conversation.title = conversation.title || dream.title || "Dream chat";
+  if (conversation.dreamIds.length === 1 && dream.title) {
+    conversation.title = dream.title;
+  }
+  conversation.updatedAt = dream.createdAt || new Date().toISOString();
+  conversationCache = conversationCache.sort((first, second) => new Date(second.updatedAt) - new Date(first.updatedAt));
+  saveConversations();
 }
 
 function renderChatMessages(dreams) {
@@ -31,24 +110,26 @@ function renderChatMessages(dreams) {
   `).join("");
 }
 
-function renderHistoryList(dreams) {
-  return dreams.map((dream) => `
+function renderHistoryList(conversations) {
+  return conversations.map((conversation) => `
     <div class="latest-row">
-      <button class="latest-item" type="button" data-dream-id="${dream.id}">
-        <span>${escapeHtml(dream.title)}</span>
+      <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
+        <span>${escapeHtml(conversation.title)}</span>
       </button>
-      <button class="latest-delete" type="button" aria-label="Delete dream" data-delete-id="${dream.id}">×</button>
+      <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
     </div>
   `).join("");
 }
 
 export async function renderDreams() {
   dreamCache = await getDreams();
+  conversationCache = readSavedConversations(dreamCache);
+  activeConversationId = sessionStorage.getItem(STORAGE_KEYS.activeConversation) || conversationCache[0]?.id || "";
 
   return `
     ${renderTopbar({ compact: true })}
     <main class="dashboard-layout">
-      ${renderSidebar(dreamCache)}
+      ${renderSidebar(conversationCache)}
       <section class="dreams-workspace" aria-labelledby="dreams-title">
         <div class="workspace-heading">
           <p class="workspace-kicker">DreamScope</p>
@@ -58,7 +139,7 @@ export async function renderDreams() {
           </p>
         </div>
         <section class="dream-chat" id="dream-chat" aria-label="DreamScope chat">
-          ${renderChatMessages(dreamCache)}
+          ${renderChatMessages(getDreamsForConversation(getActiveConversation()))}
         </section>
         <form class="dream-entry" id="dream-form">
           <label class="visually-hidden" for="dream-input">Write your dream</label>
@@ -75,8 +156,12 @@ export function initDreams() {
   const chat = qs("#dream-chat");
   const sendButton = qs("#dream-send-button");
   const latestList = qs(".latest-list");
-  const refreshHistory = (dreams) => {
-    latestList.innerHTML = renderHistoryList(dreams.slice(0, 5));
+  const refreshHistory = (conversations) => {
+    latestList.innerHTML = renderHistoryList(conversations.slice(0, 8));
+  };
+  const refreshChat = () => {
+    chat.innerHTML = renderChatMessages(getDreamsForConversation(getActiveConversation()));
+    chat.scrollTop = chat.scrollHeight;
   };
 
   qs("#dream-form").addEventListener("submit", async (event) => {
@@ -107,15 +192,15 @@ export function initDreams() {
     try {
       const dream = await createDream(value);
       dreamCache = [dream, ...dreamCache];
-      chat.innerHTML = renderChatMessages(dreamCache);
-      refreshHistory(dreamCache);
-      chat.scrollTop = chat.scrollHeight;
+      appendDreamToActiveConversation(dream);
+      refreshChat();
+      refreshHistory(conversationCache);
     } catch (error) {
       qs("#dreamscope-loading")?.remove();
       chat.insertAdjacentHTML("beforeend", `
         <article class="chat-message chat-message--ai">
           <span class="chat-message__label">DreamScope</span>
-          <p>${escapeHtml(error.message || "DreamScope kunne ikke svare lige nu.")}</p>
+          <p>${escapeHtml(error.message || "DreamScope is having a technical problem. We are working on a fix. Please try again shortly.")}</p>
         </article>
       `);
     } finally {
@@ -126,45 +211,33 @@ export function initDreams() {
 
   qs("#dream-search").addEventListener("input", (event) => {
     const search = event.target.value.toLowerCase();
-    const filtered = dreamCache.filter((dream) =>
-      `${dream.title} ${dream.text}`.toLowerCase().includes(search)
+    const filtered = conversationCache.filter((conversation) =>
+      `${conversation.title} ${getDreamsForConversation(conversation).map((dream) => dream.text).join(" ")}`.toLowerCase().includes(search)
     );
     refreshHistory(filtered);
   });
 
   latestList.addEventListener("click", async (event) => {
-    const dreamButton = event.target.closest("[data-dream-id]");
-    const deleteButton = event.target.closest("[data-delete-id]");
+    const conversationButton = event.target.closest("[data-conversation-id]");
+    const deleteButton = event.target.closest("[data-delete-conversation-id]");
 
-    if (dreamButton) {
-      const id = dreamButton.dataset.dreamId;
-      const selected = dreamCache.find((dream) => dream.id === id);
-      if (selected) {
-        chat.innerHTML = renderChatMessages([selected]);
-        chat.scrollTop = chat.scrollHeight;
-      }
+    if (conversationButton) {
+      setActiveConversation(conversationButton.dataset.conversationId);
+      refreshChat();
       return;
     }
 
     if (deleteButton) {
-      await deleteDream(deleteButton.dataset.deleteId);
-      dreamCache = dreamCache.filter((dream) => dream.id !== deleteButton.dataset.deleteId);
-      chat.innerHTML = renderChatMessages(dreamCache);
-      refreshHistory(dreamCache);
+      const conversationId = deleteButton.dataset.deleteConversationId;
+      const conversation = conversationCache.find((item) => item.id === conversationId);
+      await Promise.all((conversation?.dreamIds || []).map((dreamId) => deleteDream(dreamId)));
+      dreamCache = dreamCache.filter((dream) => !conversation?.dreamIds.includes(dream.id));
+      conversationCache = conversationCache.filter((item) => item.id !== conversationId);
+      saveConversations();
+      setActiveConversation(conversationCache[0]?.id || "");
+      refreshChat();
+      refreshHistory(conversationCache);
     }
-  });
-
-  qsa("[data-dream-id]").forEach((button) => {
-    button.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " ") {
-        return;
-      }
-      const id = button.dataset.dreamId;
-      const selected = dreamCache.find((dream) => dream.id === id);
-      if (selected) {
-        chat.innerHTML = renderChatMessages([selected]);
-      }
-    });
   });
 
   qs("#dreams-terms").addEventListener("click", () => {
@@ -175,6 +248,7 @@ export function initDreams() {
   });
 
   if (new URLSearchParams(window.location.search).get("new") === "true") {
+    startNewConversation();
     qs("#dream-input").focus();
     chat.innerHTML = renderChatMessages([]);
   }

@@ -7,7 +7,7 @@ function normalizeDream(dream) {
 
   return {
     id: dream.dreamId || dream.id,
-    title: dream.title || text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "Ny drøm",
+    title: dream.title || text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "New dream chat",
     text,
     createdAt: dream.createdAt || new Date().toISOString(),
     interpretations: dream.interpretations || []
@@ -37,7 +37,7 @@ export async function getDreams() {
 export async function createDream(text) {
   const dream = {
     id: createId("dream"),
-    title: text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "Ny drøm",
+    title: text.trim().split(/[.!?\n]/)[0].slice(0, 42) || "New dream chat",
     text: text.trim(),
     createdAt: new Date().toISOString()
   };
@@ -50,7 +50,7 @@ export async function createDream(text) {
     return normalizeDream(response);
   } catch (error) {
     console.error("DreamScope could not create or interpret the dream.", error);
-    throw new Error(error.message || "DreamScope kunne ikke svare. Tjek at du er logget ind, og at backenden kører.");
+    throw new Error(error.message || "DreamScope is having a technical problem. We are working on a fix. Please try again shortly.");
   }
 }
 

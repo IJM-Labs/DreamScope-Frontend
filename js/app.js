@@ -80,7 +80,9 @@ function bindLogout() {
 }
 
 function showConsentModal() {
-  if (localStorage.getItem(STORAGE_KEYS.termsAccepted) === "true") {
+  localStorage.removeItem(STORAGE_KEYS.termsAccepted);
+
+  if (sessionStorage.getItem(STORAGE_KEYS.termsAccepted) === "true") {
     return;
   }
 
@@ -94,7 +96,7 @@ function showConsentModal() {
   });
 
   qs("#accept-consent")?.addEventListener("click", () => {
-    localStorage.setItem(STORAGE_KEYS.termsAccepted, "true");
+    sessionStorage.setItem(STORAGE_KEYS.termsAccepted, "true");
     closeModal();
   });
 }

@@ -1,7 +1,4 @@
-const currentHost = window.location.hostname || "localhost";
-const apiHost = currentHost === "127.0.0.1" || currentHost === "localhost" ? currentHost : "localhost";
-
-export const API_BASE_URL = window.DREAMSCOPE_API_BASE_URL || `http://${apiHost}:8080`;
+export const API_BASE_URL = window.DREAMSCOPE_API_BASE_URL ?? "";
 
 export const ROUTES = {
   home: "/",
@@ -13,6 +10,8 @@ export const ROUTES = {
 export const STORAGE_KEYS = {
   user: "dreamscope:user",
   dreams: "dreamscope:dreams",
+  conversations: "dreamscope:conversations",
+  activeConversation: "dreamscope:active-conversation",
   token: "dreamscope:token",
   termsAccepted: "dreamscope:terms-accepted"
 };

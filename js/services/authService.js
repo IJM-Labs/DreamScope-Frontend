@@ -33,11 +33,11 @@ export async function sendMagicLink({ name, email }) {
     sessionStorage.setItem("dreamscope:pending-user", JSON.stringify({ name, nickname: name, email }));
     return {
       mode: "backend",
-      message: response.message || "Engangskode sendt. Tjek din email eller backend-terminalen."
+      message: response.message || "One-time code sent. Check your email or the backend terminal."
     };
   } catch (error) {
     console.error("DreamScope login request failed.", error);
-    throw new Error(error.message || "Kunne ikke sende magic link. Tjek at backenden kører på port 8080.");
+    throw new Error(error.message || "Could not send the one-time code. DreamScope is checking the technical issue.");
   }
 }
 
@@ -55,7 +55,7 @@ export async function verifyMagicLink(token) {
     sessionStorage.removeItem("dreamscope:pending-user");
     return user;
   } catch (error) {
-    throw new Error(error.message || "Koden kunne ikke verificeres.");
+    throw new Error(error.message || "The one-time code could not be verified.");
   }
 }
 
@@ -68,8 +68,10 @@ export async function logout() {
 
   localStorage.removeItem(STORAGE_KEYS.token);
   localStorage.removeItem(STORAGE_KEYS.user);
+  localStorage.removeItem(STORAGE_KEYS.conversations);
   sessionStorage.removeItem(STORAGE_KEYS.token);
   sessionStorage.removeItem(STORAGE_KEYS.user);
+  sessionStorage.removeItem(STORAGE_KEYS.activeConversation);
 }
 
 export async function updateCurrentUser(updates) {
@@ -104,6 +106,8 @@ export async function deleteCurrentUser() {
   localStorage.removeItem(STORAGE_KEYS.user);
   localStorage.removeItem(STORAGE_KEYS.token);
   localStorage.removeItem(STORAGE_KEYS.dreams);
+  localStorage.removeItem(STORAGE_KEYS.conversations);
   sessionStorage.removeItem(STORAGE_KEYS.user);
   sessionStorage.removeItem(STORAGE_KEYS.token);
+  sessionStorage.removeItem(STORAGE_KEYS.activeConversation);
 }

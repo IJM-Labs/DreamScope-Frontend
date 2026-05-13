@@ -23,8 +23,8 @@ export function renderTopbar({ compact = false } = {}) {
   `;
 }
 
-export function renderSidebar(dreams = []) {
-  const latestDreams = dreams.slice(0, 5);
+export function renderSidebar(conversations = []) {
+  const latestConversations = conversations.slice(0, 8);
 
   return `
     <aside class="sidebar" aria-label="Dreams menu">
@@ -36,12 +36,12 @@ export function renderSidebar(dreams = []) {
       <section class="sidebar__latest">
         <h2>History</h2>
         <div class="latest-list">
-          ${latestDreams.map((dream) => `
+          ${latestConversations.map((conversation) => `
             <div class="latest-row">
-              <button class="latest-item" type="button" data-dream-id="${dream.id}">
-                <span>${dream.title}</span>
+              <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
+                <span>${conversation.title}</span>
               </button>
-              <button class="latest-delete" type="button" aria-label="Delete dream" data-delete-id="${dream.id}">×</button>
+              <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
             </div>
           `).join("")}
         </div>
