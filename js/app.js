@@ -90,8 +90,8 @@ function showConsentModal() {
   openModal({
     title: "Terms, condition and cookies",
     body: `
-      <p>DreamScope bruger cookies og lokal browser-lagring til login-flow, cookievalg og din midlertidige brugeroplevelse.</p>
-      <p>AI-fortolkninger er forslag og kan tage fejl. Dobbelttjek altid vigtig information.</p>
+      <p>DreamScope uses cookies and local browser storage for login, consent choices, and your temporary user experience.</p>
+      <p>AI interpretations are suggestions and can be wrong. Always double check important information.</p>
     `,
     actions: `
       <button class="button button--secondary" type="button" id="decline-consent">Decline</button>

@@ -10,13 +10,13 @@ export function renderTopbar({ compact = false } = {}) {
         <span class="brand__mark" aria-hidden="true">DS</span>
         <span>DreamScope</span>
       </a>
-      <nav class="topbar__nav" aria-label="Primær navigation">
+      <nav class="topbar__nav" aria-label="Primary navigation">
         ${isLoggedIn() ? "" : '<a href="/" data-link>Home</a>'}
         <a href="/dreams" data-link>Dreams</a>
         ${isLoggedIn() ? '<a href="/settings" data-link>Settings</a>' : '<a href="/login" data-link>Login</a>'}
         ${isLoggedIn() ? '<button class="nav-logout" type="button" data-logout>Log out</button>' : ""}
       </nav>
-      <a class="profile-chip" href="${isLoggedIn() ? "/settings" : "/login"}" data-link aria-label="Profil">
+      <a class="profile-chip" href="${isLoggedIn() ? "/settings" : "/login"}" data-link aria-label="Profile">
         ${user ? getInitials(user.name) : "?"}
       </a>
     </header>
