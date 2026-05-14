@@ -1,6 +1,6 @@
 import { renderSidebar, renderTopbar } from "../components/navbar.js";
 import { openModal } from "../components/modal.js";
-import { createDream, deleteDream, deleteThread, getDreams } from "../services/dreamService.js";
+import { createDream, deleteDream, deleteThread, getDreams, updateThreadTitle } from "../services/dreamService.js";
 import { STORAGE_KEYS } from "../utils/constants.js";
 import { createId, escapeHtml, qs } from "../utils/helpers.js";
 import { required } from "../utils/validator.js";
@@ -97,8 +97,7 @@ function appendDreamToActiveConversation(dream) {
   }
 
   conversation.dreamIds = [dream.id, ...conversation.dreamIds.filter((dreamId) => dreamId !== dream.id)];
-  conversation.title = conversation.title || dream.title || "Dream chat";
-  if (conversation.dreamIds.length === 1 && dream.title) {
+  if (dream.title && (conversation.dreamIds.length === 1 || !conversation.title || conversation.title === "Dream chat")) {
     conversation.title = dream.title;
   }
   conversation.updatedAt = dream.createdAt || new Date().toISOString();
@@ -133,6 +132,7 @@ function renderHistoryList(conversations) {
       <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
         <span>${escapeHtml(conversation.title)}</span>
       </button>
+      <button class="latest-edit" type="button" aria-label="Rename chat" data-edit-conversation-id="${conversation.id}">✎</button>
       <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
     </div>
   `).join("");
@@ -203,6 +203,13 @@ export function initDreams() {
     setSidebarCollapsed(!layout.classList.contains("is-sidebar-collapsed"));
   });
 
+  qs("#dream-input").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      qs("#dream-form").requestSubmit();
+    }
+  });
+
   qs("#dream-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -261,7 +268,31 @@ export function initDreams() {
 
   latestList.addEventListener("click", async (event) => {
     const conversationButton = event.target.closest("[data-conversation-id]");
+    const editButton = event.target.closest("[data-edit-conversation-id]");
     const deleteButton = event.target.closest("[data-delete-conversation-id]");
+
+    if (editButton) {
+      const conversationId = editButton.dataset.editConversationId;
+      const conversation = conversationCache.find((item) => item.id === conversationId);
+      if (!conversation) {
+        return;
+      }
+
+      const nextTitle = window.prompt("Write a title for this chat", conversation.title);
+      if (!nextTitle || !nextTitle.trim()) {
+        return;
+      }
+
+      try {
+        await updateThreadTitle(conversation.threadId, nextTitle);
+        conversation.title = nextTitle.trim().slice(0, 80);
+        saveConversations();
+        refreshHistory(conversationCache);
+      } catch (error) {
+        window.alert(error.message || "DreamScope could not rename the chat right now.");
+      }
+      return;
+    }
 
     if (conversationButton) {
       setActiveConversation(conversationButton.dataset.conversationId);
@@ -272,10 +303,15 @@ export function initDreams() {
     if (deleteButton) {
       const conversationId = deleteButton.dataset.deleteConversationId;
       const conversation = conversationCache.find((item) => item.id === conversationId);
-      if (conversation?.threadId) {
-        await deleteThread(conversation.threadId);
-      } else {
-        await Promise.all((conversation?.dreamIds || []).map((dreamId) => deleteDream(dreamId)));
+      try {
+        if (conversation?.threadId) {
+          await deleteThread(conversation.threadId);
+        } else {
+          await Promise.all((conversation?.dreamIds || []).map((dreamId) => deleteDream(dreamId)));
+        }
+      } catch (error) {
+        window.alert(error.message || "DreamScope could not delete the chat from the database right now.");
+        return;
       }
       dreamCache = dreamCache.filter((dream) => !conversation?.dreamIds.includes(dream.id));
       conversationCache = conversationCache.filter((item) => item.id !== conversationId);
@@ -283,6 +319,7 @@ export function initDreams() {
       setActiveConversation(conversationCache[0]?.id || "");
       refreshChat();
       refreshHistory(conversationCache);
+      return;
     }
   });
 

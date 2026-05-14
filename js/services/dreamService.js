@@ -57,12 +57,7 @@ export async function createDream(text, threadId) {
 }
 
 export async function deleteDream(id) {
-  try {
-    await request(`/api/dreams/${id}`, { method: "DELETE" });
-  } catch (error) {
-    console.info("Backend delete dream endpoint is not available yet, deleting locally.", error);
-  }
-
+  await request(`/api/dreams/${id}`, { method: "DELETE" });
   writeLocalDreams(readLocalDreams().filter((dream) => dream.id !== id));
 }
 
@@ -71,11 +66,13 @@ export async function deleteThread(threadId) {
     return;
   }
 
-  try {
-    await request(`/api/dreams/threads/${encodeURIComponent(threadId)}`, { method: "DELETE" });
-  } catch (error) {
-    console.info("Backend delete thread endpoint is not available yet, deleting locally.", error);
-  }
-
+  await request(`/api/dreams/threads/${encodeURIComponent(threadId)}`, { method: "DELETE" });
   writeLocalDreams(readLocalDreams().filter((dream) => dream.threadId !== threadId));
+}
+
+export async function updateThreadTitle(threadId, title) {
+  await request(`/api/dreams/threads/${encodeURIComponent(threadId)}/title`, {
+    method: "PUT",
+    body: JSON.stringify({ title: title.trim() })
+  });
 }

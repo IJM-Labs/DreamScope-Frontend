@@ -1,5 +1,5 @@
 import { getCurrentUser, isLoggedIn } from "../services/authService.js";
-import { getInitials } from "../utils/helpers.js";
+import { escapeHtml, getInitials } from "../utils/helpers.js";
 
 export function renderTopbar({ compact = false } = {}) {
   const user = getCurrentUser();
@@ -41,8 +41,9 @@ export function renderSidebar(conversations = []) {
             ${latestConversations.map((conversation) => `
               <div class="latest-row">
                 <button class="latest-item" type="button" data-conversation-id="${conversation.id}">
-                  <span>${conversation.title}</span>
+                  <span>${escapeHtml(conversation.title)}</span>
                 </button>
+                <button class="latest-edit" type="button" aria-label="Rename chat" data-edit-conversation-id="${conversation.id}">✎</button>
                 <button class="latest-delete" type="button" aria-label="Delete chat" data-delete-conversation-id="${conversation.id}">×</button>
               </div>
             `).join("")}

@@ -146,12 +146,13 @@
 
 .latest-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 34px;
+  grid-template-columns: minmax(0, 1fr) 34px 34px;
   gap: 8px;
   align-items: center;
 }
 
 .latest-item,
+.latest-edit,
 .latest-delete {
   min-height: 40px;
   border: 0;
@@ -167,6 +168,7 @@
 }
 
 .latest-item:hover,
+.latest-edit:hover,
 .latest-delete:hover {
   background: #2f2f2f;
 }
@@ -178,6 +180,7 @@
   white-space: nowrap;
 }
 
+.latest-edit,
 .latest-delete {
   color: #b4b4b4;
   font-size: 1.05rem;
