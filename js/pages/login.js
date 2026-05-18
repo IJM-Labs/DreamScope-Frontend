@@ -46,7 +46,7 @@ export function initLogin() {
     const button = qs("#send-link-button");
 
     if (!required(name) || !isValidEmail(email)) {
-      message.textContent = "Skriv navn og en gyldig email.";
+      message.textContent = "Enter your name and a valid email.";
       return;
     }
 

@@ -109,7 +109,7 @@ function renderChatMessages(dreams) {
   if (!dreams.length) {
     return `
       <div class="chat-empty">
-        <p>Send din første drøm, så svarer DreamScope her.</p>
+        <p>Send your first dream, and DreamScope will answer here.</p>
       </div>
     `;
   }

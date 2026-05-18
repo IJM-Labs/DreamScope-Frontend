@@ -32,16 +32,16 @@ export function initSettings() {
     const message = qs("#settings-message");
 
     if (!required(name)) {
-      message.textContent = "Skriv et navn før du gemmer.";
+      message.textContent = "Enter a name before saving.";
       return;
     }
 
     await updateCurrentUser({ name, nickname: name });
-    message.textContent = "Navnet er gemt.";
+    message.textContent = "Name saved.";
   });
 
   qs("#delete-account").addEventListener("click", async () => {
-    const shouldDelete = window.confirm("Vil du slette kontoen og lokale drømme?");
+    const shouldDelete = window.confirm("Do you want to delete your account and local dreams?");
     if (!shouldDelete) {
       return;
     }
