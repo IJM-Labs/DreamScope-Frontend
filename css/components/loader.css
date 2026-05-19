@@ -1,0 +1,16 @@
+.loader {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  gap: 14px;
+  color: white;
+  font-weight: 800;
+}
+
+.loader__moon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  box-shadow: 10px 0 0 #fffdf8;
+  transform: translateX(-8px);
+}
